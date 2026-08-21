@@ -6,7 +6,6 @@
 
     <title>Stock Barang</title>
 
-    <!-- SheetJS untuk membaca Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -18,13 +17,13 @@
             margin: 0;
             font-family: Arial, sans-serif;
             background: #f4f6f8;
-            color: #222;
+            color: #1f2937;
         }
 
         .header {
-            background: #1f2937;
+            background: #111827;
             color: white;
-            padding: 20px;
+            padding: 22px 18px;
         }
 
         .header h1 {
@@ -34,27 +33,32 @@
 
         .header p {
             margin: 6px 0 0;
-            opacity: 0.8;
+            color: #d1d5db;
         }
 
         .container {
             max-width: 1100px;
             margin: auto;
-            padding: 20px;
+            padding: 18px;
         }
 
         .card {
             background: white;
             border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 18px;
+            margin-bottom: 18px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 19px;
         }
 
         .import-box {
             border: 2px dashed #9ca3af;
             border-radius: 12px;
-            padding: 25px;
+            padding: 25px 15px;
             text-align: center;
         }
 
@@ -63,25 +67,39 @@
             width: 100%;
         }
 
+        .file-status {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
         .controls {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 180px 1fr;
             gap: 15px;
         }
 
-        .controls input,
-        .controls select {
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        select,
+        input[type="text"] {
             width: 100%;
             padding: 12px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 15px;
+            background: white;
         }
 
         .stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            gap: 12px;
         }
 
         .stat {
@@ -107,7 +125,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
+            min-width: 550px;
         }
 
         th,
@@ -119,6 +137,13 @@
 
         th {
             background: #f3f4f6;
+            position: sticky;
+            top: 0;
+        }
+
+        td:last-child,
+        th:last-child {
+            text-align: right;
         }
 
         .empty {
@@ -127,10 +152,23 @@
             color: #6b7280;
         }
 
+        .stock-zero {
+            font-weight: bold;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        .success {
+            color: #15803d;
+            font-weight: bold;
+        }
+
         @media (max-width: 600px) {
 
             .container {
-                padding: 12px;
+                padding: 10px;
             }
 
             .controls {
@@ -150,457 +188,315 @@
 
 <body>
 
-    <div class="header">
-        <h1>📦 Stock Barang</h1>
-        <p>Aplikasi Rekap Stok Barang</p>
-    </div>
+<header class="header">
+    <h1>📦 Stock Barang</h1>
+    <p>Aplikasi Rekap Stok Barang</p>
+</header>
 
-    <div class="container">
 
-        <!-- IMPORT EXCEL -->
-        <div class="card">
-            <h2>📥 Import Data Excel</h2>
+<main class="container">
 
-            <div class="import-box">
+    <!-- IMPORT -->
+    <section class="card">
 
-                <div>
-                    Pilih file Excel stok kamu
-                </div>
+        <h2>📥 Import Data Excel</h2>
+
+        <div class="import-box">
+
+            <div>
+                Pilih file stok Excel
+            </div>
+
+            <input
+                type="file"
+                id="excelFile"
+                accept=".xlsx,.xls"
+            >
+
+            <div
+                id="fileStatus"
+                class="file-status"
+            >
+                Belum ada file yang dipilih
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- FILTER -->
+    <section class="card">
+
+        <h2>🔎 Rekap Stok</h2>
+
+        <div class="controls">
+
+            <div>
+
+                <label for="tanggal">
+                    Tanggal
+                </label>
+
+                <select id="tanggal">
+
+                    <option value="">
+                        -- Pilih tanggal --
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div>
+
+                <label for="search">
+                    Cari Barang
+                </label>
 
                 <input
-                    type="file"
-                    id="excelFile"
-                    accept=".xlsx,.xls"
+                    type="text"
+                    id="search"
+                    placeholder="Ketik nama barang..."
                 >
 
-                <p id="fileStatus">
-                    Belum ada file yang dipilih
-                </p>
-
-            </div>
-        </div>
-
-
-        <!-- FILTER -->
-        <div class="card">
-
-            <h2>🔎 Rekap Stok</h2>
-
-            <div class="controls">
-
-                <div>
-                    <label>Pilih tanggal</label>
-
-                    <select id="tanggal">
-                        <option value="">-- Pilih tanggal --</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Cari barang</label>
-
-                    <input
-                        type="text"
-                        id="search"
-                        placeholder="Ketik nama barang..."
-                    >
-                </div>
-
             </div>
 
         </div>
 
+    </section>
 
-        <!-- STATISTIK -->
-        <div class="card">
 
-            <div class="stats">
+    <!-- STATISTIK -->
+    <section class="card">
 
-                <div class="stat">
-                    <small>Total Barang</small>
-                    <strong id="totalBarang">0</strong>
-                </div>
+        <div class="stats">
 
-                <div class="stat">
-                    <small>Total Stok</small>
-                    <strong id="totalStok">0</strong>
-                </div>
+            <div class="stat">
 
-                <div class="stat">
-                    <small>Stok Habis</small>
-                    <strong id="stokHabis">0</strong>
-                </div>
+                <small>
+                    Total Barang
+                </small>
+
+                <strong id="totalBarang">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <small>
+                    Total Stok
+                </small>
+
+                <strong id="totalStok">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <small>
+                    Stok Habis
+                </small>
+
+                <strong id="stokHabis">
+                    0
+                </strong>
 
             </div>
 
         </div>
 
+    </section>
 
-        <!-- TABLE -->
-        <div class="card">
 
-            <div class="table-wrapper">
+    <!-- TABEL -->
+    <section class="card">
 
-                <table>
+        <div class="table-wrapper">
 
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama Barang</th>
-                            <th>Stok</th>
-                        </tr>
-                    </thead>
+            <table>
 
-                    <tbody id="stockTable">
+                <thead>
 
-                        <tr>
-                            <td colspan="3" class="empty">
-                                Import file Excel terlebih dahulu
-                            </td>
-                        </tr>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Barang</th>
+                        <th>Stok</th>
+                    </tr>
 
-                    </tbody>
+                </thead>
 
-                </table>
+                <tbody id="stockTable">
 
-            </div>
+                    <tr>
+
+                        <td
+                            colspan="3"
+                            class="empty"
+                        >
+                            Import file Excel terlebih dahulu
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
 
         </div>
 
-    </div>
+    </section>
+
+</main>
 
 
 <script>
 
 let dataExcel = [];
+
 let tanggalDipilih = "";
 
 
-/* ================================
+/* ==========================================
    IMPORT EXCEL
-================================ */
+========================================== */
 
-document.getElementById("excelFile").addEventListener("change", async function(event) {
+document
+.getElementById("excelFile")
+.addEventListener("change", async function(event) {
 
     const file = event.target.files[0];
 
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
-    document.getElementById("fileStatus").textContent =
-        "Membaca file: " + file.name;
+
+    const status =
+        document.getElementById("fileStatus");
+
+
+    status.className = "file-status";
+
+    status.textContent =
+        "⏳ Membaca " + file.name + "...";
+
 
     try {
 
-        const arrayBuffer = await file.arrayBuffer();
+        const buffer =
+            await file.arrayBuffer();
 
-        const workbook = XLSX.read(arrayBuffer);
 
-        const sheetName = workbook.SheetNames[0];
+        const workbook =
+            XLSX.read(buffer, {
+                type: "array"
+            });
 
-        const worksheet = workbook.Sheets[sheetName];
-
-        const rows = XLSX.utils.sheet_to_json(
-            worksheet,
-            {
-                header: 1,
-                defval: ""
-            }
-        );
-
-        if (rows.length < 2) {
-            alert("Data Excel tidak ditemukan.");
-            return;
-        }
 
         /*
-         * Baris pertama dianggap sebagai header.
+         * Ambil sheet pertama
+         */
+
+        const sheetName =
+            workbook.SheetNames[0];
+
+
+        const worksheet =
+            workbook.Sheets[sheetName];
+
+
+        /*
+         * Ubah Excel menjadi array.
          *
-         * Contoh:
+         * header: 1
+         * membuat setiap baris menjadi array.
+         */
+
+        const rows =
+            XLSX.utils.sheet_to_json(
+                worksheet,
+                {
+                    header: 1,
+                    defval: null,
+                    raw: true
+                }
+            );
+
+
+        if (!rows || rows.length < 2) {
+
+            throw new Error(
+                "Data Excel tidak ditemukan."
+            );
+
+        }
+
+
+        /*
+         * Baris pertama adalah header.
          *
-         * Nama Barang | 1 | 2 | 3 | ... | 31
+         * Contoh file kamu:
+         *
+         * Agu-26 | 1 | 2 | 3 | 4 | ... | 31
          */
 
         const header = rows[0];
 
-        dataExcel = [];
 
-        for (let i = 1; i < rows.length; i++) {
+        /*
+         * Cari kolom tanggal.
+         *
+         * Kita tidak menganggap
+         * kolom tertentu sebagai tanggal.
+         *
+         * Kita benar-benar mencari
+         * header 1 sampai 31.
+         */
 
-            const row = rows[i];
+        const kolomTanggal = {};
 
-            const namaBarang = row[0];
+
+        for (
+            let c = 0;
+            c < header.length;
+            c++
+        ) {
+
+            const nilaiHeader =
+                header[c];
+
 
             if (
-                namaBarang === undefined ||
-                namaBarang === null ||
-                String(namaBarang).trim() === ""
+                nilaiHeader === null ||
+                nilaiHeader === undefined
             ) {
                 continue;
             }
 
-            const barang = {
-                nama: String(namaBarang).trim(),
-                stok: {}
-            };
+
+            const text =
+                String(nilaiHeader)
+                .trim();
+
 
             /*
-             * Baca kolom tanggal 1 - 31
+             * Excel kadang membaca
+             * angka sebagai 1, 2, 3.
              */
 
-            for (let c = 1; c < header.length; c++) {
+            const nomorTanggal =
+                Number(text);
 
-                const tanggal = String(header[c]).trim();
 
-                if (/^(0?[1-9]|[12][0-9]|3[01])$/.test(tanggal)) {
-
-                    let nilai = row[c];
-
-                    if (
-                        nilai === "" ||
-                        nilai === null ||
-                        nilai === undefined
-                    ) {
-                        nilai = 0;
-                    }
-
-                    nilai = Number(nilai);
-
-                    if (isNaN(nilai)) {
-                        nilai = 0;
-                    }
-
-                    barang.stok[tanggal] = nilai;
-                }
-            }
-
-            dataExcel.push(barang);
-        }
-
-
-        /* Buat pilihan tanggal */
-
-        const selectTanggal =
-            document.getElementById("tanggal");
-
-        selectTanggal.innerHTML =
-            '<option value="">-- Pilih tanggal --</option>';
-
-        for (let tanggal = 1; tanggal <= 31; tanggal++) {
-
-            if (header.some(h =>
-                String(h).trim() === String(tanggal)
-            )) {
-
-                const option =
-                    document.createElement("option");
-
-                option.value = tanggal;
-
-                option.textContent =
-                    "Tanggal " + tanggal;
-
-                selectTanggal.appendChild(option);
-            }
-        }
-
-
-        document.getElementById("fileStatus").textContent =
-            "✅ Berhasil membaca " +
-            dataExcel.length +
-            " barang";
-
-
-        updateTable();
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert(
-            "Gagal membaca Excel.\n\n" +
-            error.message
-        );
-
-    }
-
-});
-
-
-/* ================================
-   PILIH TANGGAL
-================================ */
-
-document.getElementById("tanggal").addEventListener(
-    "change",
-    function() {
-
-        tanggalDipilih = this.value;
-
-        updateTable();
-
-    }
-);
-
-
-/* ================================
-   PENCARIAN
-================================ */
-
-document.getElementById("search").addEventListener(
-    "input",
-    updateTable
-);
-
-
-/* ================================
-   TAMPILKAN DATA
-================================ */
-
-function updateTable() {
-
-    const tbody =
-        document.getElementById("stockTable");
-
-    const search =
-        document.getElementById("search")
-        .value
-        .toLowerCase()
-        .trim();
-
-
-    if (dataExcel.length === 0) {
-
-        tbody.innerHTML =
-            '<tr><td colspan="3" class="empty">' +
-            'Import file Excel terlebih dahulu' +
-            '</td></tr>';
-
-        updateStats([]);
-
-        return;
-    }
-
-
-    let filtered = dataExcel.filter(barang => {
-
-        return barang.nama
-            .toLowerCase()
-            .includes(search);
-
-    });
-
-
-    tbody.innerHTML = "";
-
-
-    if (filtered.length === 0) {
-
-        tbody.innerHTML =
-            '<tr><td colspan="3" class="empty">' +
-            'Barang tidak ditemukan' +
-            '</td></tr>';
-
-        updateStats([]);
-
-        return;
-    }
-
-
-    filtered.forEach((barang, index) => {
-
-        const stok =
-            tanggalDipilih
-                ? (barang.stok[tanggalDipilih] ?? 0)
-                : 0;
-
-        const tr =
-            document.createElement("tr");
-
-        tr.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${escapeHTML(barang.nama)}</td>
-            <td>${formatNumber(stok)}</td>
-        `;
-
-        tbody.appendChild(tr);
-
-    });
-
-
-    updateStats(filtered);
-
-}
-
-
-/* ================================
-   STATISTIK
-================================ */
-
-function updateStats(data) {
-
-    document.getElementById("totalBarang")
-        .textContent = data.length;
-
-
-    let total = 0;
-
-    let habis = 0;
-
-
-    data.forEach(barang => {
-
-        const stok =
-            tanggalDipilih
-                ? (barang.stok[tanggalDipilih] ?? 0)
-                : 0;
-
-        total += stok;
-
-        if (stok <= 0) {
-            habis++;
-        }
-
-    });
-
-
-    document.getElementById("totalStok")
-        .textContent = formatNumber(total);
-
-
-    document.getElementById("stokHabis")
-        .textContent = habis;
-
-}
-
-
-/* ================================
-   FORMAT ANGKA
-================================ */
-
-function formatNumber(number) {
-
-    return new Intl.NumberFormat("id-ID")
-        .format(number);
-
-}
-
-
-/* ================================
-   KEAMANAN HTML
-================================ */
-
-function escapeHTML(text) {
-
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-</script>
-
-</body>
-</html>
+            if (
+                Number.isInteger(nomorTanggal) &&
+                nomorTanggal >= 1 &&
+                nomorTanggal <= 31
