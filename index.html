@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Stock Barang</title>
+
+    <!-- SheetJS untuk membaca Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .header p {
+            margin: 6px 0 0;
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .import-box {
+            border: 2px dashed #9ca3af;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .import-box input {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .controls input,
+        .controls select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .stat small {
+            color: #6b7280;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 24px;
+            margin-top: 5px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f3f4f6;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 600px) {
+
+            .container {
+                padding: 12px;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>📦 Stock Barang</h1>
+        <p>Aplikasi Rekap Stok Barang</p>
+    </div>
+
+    <div class="container">
+
+        <!-- IMPORT EXCEL -->
+        <div class="card">
+            <h2>📥 Import Data Excel</h2>
+
+            <div class="import-box">
+
+                <div>
+                    Pilih file Excel stok kamu
+                </div>
+
+                <input
+                    type="file"
+                    id="excelFile"
+                    accept=".xlsx,.xls"
+                >
+
+                <p id="fileStatus">
+                    Belum ada file yang dipilih
+                </p>
+
+            </div>
+        </div>
+
+
+        <!-- FILTER -->
+        <div class="card">
+
+            <h2>🔎 Rekap Stok</h2>
+
+            <div class="controls">
+
+                <div>
+                    <label>Pilih tanggal</label>
+
+                    <select id="tanggal">
+                        <option value="">-- Pilih tanggal --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Cari barang</label>
+
+                    <input
+                        type="text"
+                        id="search"
+                        placeholder="Ketik nama barang..."
+                    >
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATISTIK -->
+        <div class="card">
+
+            <div class="stats">
+
+                <div class="stat">
+                    <small>Total Barang</small>
+                    <strong id="totalBarang">0</strong>
+                </div>
+
+                <div class="stat">
+                    <small>Total Stok</small>
+                    <strong id="totalStok">0</strong>
+                </div>
+
+                <div class="stat">
+                    <small>Stok Habis</small>
+                    <strong id="stokHabis">0</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TABLE -->
+        <div class="card">
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Barang</th>
+                            <th>Stok</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="stockTable">
+
+                        <tr>
+                            <td colspan="3" class="empty">
+                                Import file Excel terlebih dahulu
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+<script>
+
+let dataExcel = [];
+let tanggalDipilih = "";
+
+
+/* ================================
+   IMPORT EXCEL
+================================ */
+
+document.getElementById("excelFile").addEventListener("change", async function(event) {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    document.getElementById("fileStatus").textContent =
+        "Membaca file: " + file.name;
+
+    try {
+
+        const arrayBuffer = await file.arrayBuffer();
+
+        const workbook = XLSX.read(arrayBuffer);
+
+        const sheetName = workbook.SheetNames[0];
+
+        const worksheet = workbook.Sheets[sheetName];
+
+        const rows = XLSX.utils.sheet_to_json(
+            worksheet,
+            {
+                header: 1,
+                defval: ""
+            }
+        );
+
+        if (rows.length < 2) {
+            alert("Data Excel tidak ditemukan.");
+            return;
+        }
+
+        /*
+         * Baris pertama dianggap sebagai header.
+         *
+         * Contoh:
+         *
+         * Nama Barang | 1 | 2 | 3 | ... | 31
+         */
+
+        const header = rows[0];
+
+        dataExcel = [];
+
+        for (let i = 1; i < rows.length; i++) {
+
+            const row = rows[i];
+
+            const namaBarang = row[0];
+
+            if (
+                namaBarang === undefined ||
+                namaBarang === null ||
+                String(namaBarang).trim() === ""
+            ) {
+                continue;
+            }
+
+            const barang = {
+                nama: String(namaBarang).trim(),
+                stok: {}
+            };
+
+            /*
+             * Baca kolom tanggal 1 - 31
+             */
+
+            for (let c = 1; c < header.length; c++) {
+
+                const tanggal = String(header[c]).trim();
+
+                if (/^(0?[1-9]|[12][0-9]|3[01])$/.test(tanggal)) {
+
+                    let nilai = row[c];
+
+                    if (
+                        nilai === "" ||
+                        nilai === null ||
+                        nilai === undefined
+                    ) {
+                        nilai = 0;
+                    }
+
+                    nilai = Number(nilai);
+
+                    if (isNaN(nilai)) {
+                        nilai = 0;
+                    }
+
+                    barang.stok[tanggal] = nilai;
+                }
+            }
+
+            dataExcel.push(barang);
+        }
+
+
+        /* Buat pilihan tanggal */
+
+        const selectTanggal =
+            document.getElementById("tanggal");
+
+        selectTanggal.innerHTML =
+            '<option value="">-- Pilih tanggal --</option>';
+
+        for (let tanggal = 1; tanggal <= 31; tanggal++) {
+
+            if (header.some(h =>
+                String(h).trim() === String(tanggal)
+            )) {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = tanggal;
+
+                option.textContent =
+                    "Tanggal " + tanggal;
+
+                selectTanggal.appendChild(option);
+            }
+        }
+
+
+        document.getElementById("fileStatus").textContent =
+            "✅ Berhasil membaca " +
+            dataExcel.length +
+            " barang";
+
+
+        updateTable();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Gagal membaca Excel.\n\n" +
+            error.message
+        );
+
+    }
+
+});
+
+
+/* ================================
+   PILIH TANGGAL
+================================ */
+
+document.getElementById("tanggal").addEventListener(
+    "change",
+    function() {
+
+        tanggalDipilih = this.value;
+
+        updateTable();
+
+    }
+);
+
+
+/* ================================
+   PENCARIAN
+================================ */
+
+document.getElementById("search").addEventListener(
+    "input",
+    updateTable
+);
+
+
+/* ================================
+   TAMPILKAN DATA
+================================ */
+
+function updateTable() {
+
+    const tbody =
+        document.getElementById("stockTable");
+
+    const search =
+        document.getElementById("search")
+        .value
+        .toLowerCase()
+        .trim();
+
+
+    if (dataExcel.length === 0) {
+
+        tbody.innerHTML =
+            '<tr><td colspan="3" class="empty">' +
+            'Import file Excel terlebih dahulu' +
+            '</td></tr>';
+
+        updateStats([]);
+
+        return;
+    }
+
+
+    let filtered = dataExcel.filter(barang => {
+
+        return barang.nama
+            .toLowerCase()
+            .includes(search);
+
+    });
+
+
+    tbody.innerHTML = "";
+
+
+    if (filtered.length === 0) {
+
+        tbody.innerHTML =
+            '<tr><td colspan="3" class="empty">' +
+            'Barang tidak ditemukan' +
+            '</td></tr>';
+
+        updateStats([]);
+
+        return;
+    }
+
+
+    filtered.forEach((barang, index) => {
+
+        const stok =
+            tanggalDipilih
+                ? (barang.stok[tanggalDipilih] ?? 0)
+                : 0;
+
+        const tr =
+            document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${escapeHTML(barang.nama)}</td>
+            <td>${formatNumber(stok)}</td>
+        `;
+
+        tbody.appendChild(tr);
+
+    });
+
+
+    updateStats(filtered);
+
+}
+
+
+/* ================================
+   STATISTIK
+================================ */
+
+function updateStats(data) {
+
+    document.getElementById("totalBarang")
+        .textContent = data.length;
+
+
+    let total = 0;
+
+    let habis = 0;
+
+
+    data.forEach(barang => {
+
+        const stok =
+            tanggalDipilih
+                ? (barang.stok[tanggalDipilih] ?? 0)
+                : 0;
+
+        total += stok;
+
+        if (stok <= 0) {
+            habis++;
+        }
+
+    });
+
+
+    document.getElementById("totalStok")
+        .textContent = formatNumber(total);
+
+
+    document.getElementById("stokHabis")
+        .textContent = habis;
+
+}
+
+
+/* ================================
+   FORMAT ANGKA
+================================ */
+
+function formatNumber(number) {
+
+    return new Intl.NumberFormat("id-ID")
+        .format(number);
+
+}
+
+
+/* ================================
+   KEAMANAN HTML
+================================ */
+
+function escapeHTML(text) {
+
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+</script>
+
+</body>
+</html>
