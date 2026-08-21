@@ -18,7 +18,6 @@ let transactions =
         ) || "[]"
     );
 
-
 let selectedProduct = null;
 
 let selectedTransactionType = "";
@@ -39,24 +38,20 @@ document
 
         if (!file) return;
 
-
         const status =
             document.getElementById(
                 "fileStatus"
             );
-
 
         status.textContent =
             "⏳ Membaca " +
             file.name +
             "...";
 
-
         try {
 
             const buffer =
                 await file.arrayBuffer();
-
 
             const workbook =
                 XLSX.read(
@@ -66,16 +61,13 @@ document
                     }
                 );
 
-
             const sheetName =
                 workbook.SheetNames[0];
-
 
             const worksheet =
                 workbook.Sheets[
                     sheetName
                 ];
-
 
             const rows =
                 XLSX.utils.sheet_to_json(
@@ -86,7 +78,6 @@ document
                         raw: true
                     }
                 );
-
 
             if (
                 !rows ||
@@ -99,13 +90,10 @@ document
 
             }
 
-
             const header =
                 rows[0];
 
-
             const kolomTanggal = {};
-
 
             /* Cari kolom tanggal 1-31 */
 
@@ -118,21 +106,17 @@ document
                 const value =
                     header[c];
 
-
                 if (
                     value === null ||
                     value === undefined
                 ) continue;
 
-
                 const text =
                     String(value)
                     .trim();
 
-
                 const num =
                     Number(text);
-
 
                 if (
                     Number.isInteger(num) &&
@@ -148,12 +132,10 @@ document
 
             }
 
-
             const jumlahTanggal =
                 Object.keys(
                     kolomTanggal
                 ).length;
-
 
             if (
                 jumlahTanggal === 0
@@ -165,9 +147,7 @@ document
 
             }
 
-
             dataExcel = [];
-
 
             /* Baca semua barang */
 
@@ -180,10 +160,8 @@ document
                 const row =
                     rows[r];
 
-
                 const nama =
                     row[0];
-
 
                 if (
                     nama === null ||
@@ -195,7 +173,6 @@ document
 
                 }
 
-
                 const barang = {
 
                     nama:
@@ -204,7 +181,6 @@ document
                     stok: {}
 
                 };
-
 
                 /* Baca stok tanggal 1-31 */
 
@@ -219,7 +195,6 @@ document
                             String(tanggal)
                         ];
 
-
                     if (
                         col === undefined
                     ) {
@@ -228,10 +203,8 @@ document
 
                     }
 
-
                     let value =
                         row[col];
-
 
                     if (
                         value === null ||
@@ -242,7 +215,6 @@ document
                         value = 0;
 
                     }
-
 
                     if (
                         typeof value === "string"
@@ -255,10 +227,8 @@ document
 
                     }
 
-
                     const stok =
                         Number(value);
-
 
                     barang.stok[
                         String(tanggal)
@@ -269,13 +239,11 @@ document
 
                 }
 
-
                 dataExcel.push(
                     barang
                 );
 
             }
-
 
             /* Isi dropdown tanggal */
 
@@ -284,14 +252,12 @@ document
                     "tanggal"
                 );
 
-
             select.innerHTML =
                 `
                 <option value="">
                     -- Pilih tanggal --
                 </option>
                 `;
-
 
             for (
                 let tanggal = 1;
@@ -310,15 +276,12 @@ document
                             "option"
                         );
 
-
                     option.value =
                         String(tanggal);
-
 
                     option.textContent =
                         "Tanggal " +
                         tanggal;
-
 
                     select.appendChild(
                         option
@@ -327,7 +290,6 @@ document
                 }
 
             }
-
 
             /* Pilih tanggal 1 */
 
@@ -341,30 +303,24 @@ document
 
             }
 
-
             status.className =
                 "status success";
-
 
             status.textContent =
                 "✅ Berhasil membaca " +
                 dataExcel.length +
                 " barang.";
 
-
             updateTable();
 
         }
-
 
         catch(error) {
 
             console.error(error);
 
-
             status.className =
                 "status error";
-
 
             status.textContent =
                 "❌ " +
@@ -421,7 +377,6 @@ function getBaseStock(barang) {
 
     }
 
-
     return Number(
         barang.stok[
             tanggalDipilih
@@ -442,10 +397,8 @@ function getCurrentStock(barang) {
             barang
         );
 
-
     transactions.forEach(
         function(transaction) {
-
 
             if (
                 transaction.barang !==
@@ -456,7 +409,6 @@ function getCurrentStock(barang) {
 
             }
 
-
             if (
                 transaction.tanggal !==
                 tanggalDipilih
@@ -465,7 +417,6 @@ function getCurrentStock(barang) {
                 return;
 
             }
-
 
             if (
                 transaction.type ===
@@ -476,7 +427,6 @@ function getCurrentStock(barang) {
                     transaction.qty;
 
             }
-
 
             if (
                 transaction.type ===
@@ -490,7 +440,6 @@ function getCurrentStock(barang) {
 
         }
     );
-
 
     return stok;
 
@@ -508,7 +457,6 @@ function updateTable() {
             "stockTable"
         );
 
-
     const search =
         document.getElementById(
             "search"
@@ -517,7 +465,6 @@ function updateTable() {
         .toLowerCase()
         .trim();
 
-
     if (
         dataExcel.length === 0
     ) {
@@ -525,24 +472,20 @@ function updateTable() {
         tbody.innerHTML =
             `
             <tr>
-
                 <td
                     colspan="4"
                     class="empty"
                 >
                     Import Excel terlebih dahulu
                 </td>
-
             </tr>
             `;
-
 
         updateStats();
 
         return;
 
     }
-
 
     const filtered =
         dataExcel.filter(
@@ -555,23 +498,18 @@ function updateTable() {
             }
         );
 
-
     tbody.innerHTML = "";
-
 
     filtered.forEach(
         function(barang, index) {
-
 
             const stok =
                 getCurrentStock(
                     barang
                 );
 
-
             let statusClass =
                 "stock-aman";
-
 
             if (
                 stok <= 0
@@ -591,12 +529,10 @@ function updateTable() {
 
             }
 
-
             const tr =
                 document.createElement(
                     "tr"
                 );
-
 
             tr.innerHTML =
                 `
@@ -630,7 +566,6 @@ function updateTable() {
                         ➕ Masuk
                     </button>
 
-
                     <button
                         class="action-btn btn-laku"
                         onclick="openTransaction(
@@ -646,14 +581,12 @@ function updateTable() {
                 </td>
                 `;
 
-
             tbody.appendChild(
                 tr
             );
 
         }
     );
-
 
     updateStats();
 
@@ -668,7 +601,6 @@ function updateStats() {
 
     let total = 0;
 
-
     dataExcel.forEach(
         function(barang) {
 
@@ -679,7 +611,6 @@ function updateStats() {
 
         }
     );
-
 
     const transaksiHariIni =
         transactions.filter(
@@ -693,14 +624,12 @@ function updateStats() {
             }
         ).length;
 
-
     document.getElementById(
         "totalBarang"
     ).textContent =
         formatNumber(
             dataExcel.length
         );
-
 
     document.getElementById(
         "totalStok"
@@ -709,18 +638,12 @@ function updateStats() {
             total
         );
 
-
     document.getElementById(
         "transaksiHariIni"
     ).textContent =
         formatNumber(
             transaksiHariIni
         );
-
-
-    updateHistoryFilters();
-
-    renderHistory();
 
 }
 
@@ -737,28 +660,23 @@ function openTransaction(
     selectedProduct =
         nama;
 
-
     selectedTransactionType =
         type;
-
 
     const modal =
         document.getElementById(
             "transactionModal"
         );
 
-
     const title =
         document.getElementById(
             "modalTitle"
         );
 
-
     const product =
         document.getElementById(
             "modalProduct"
         );
-
 
     if (
         type === "masuk"
@@ -776,15 +694,12 @@ function openTransaction(
 
     }
 
-
     product.textContent =
         nama;
-
 
     document.getElementById(
         "transactionQty"
     ).value = 1;
-
 
     modal.style.display =
         "flex";
@@ -817,12 +732,10 @@ function confirmTransaction() {
             "transactionQty"
         );
 
-
     const qty =
         Number(
             input.value
         );
-
 
     if (
         !Number.isFinite(qty) ||
@@ -836,7 +749,6 @@ function confirmTransaction() {
         return;
 
     }
-
 
     /* Cek stok untuk barang laku */
 
@@ -857,7 +769,6 @@ function confirmTransaction() {
                 }
             );
 
-
         if (!barang) {
 
             alert(
@@ -868,12 +779,10 @@ function confirmTransaction() {
 
         }
 
-
         const stok =
             getCurrentStock(
                 barang
             );
-
 
         if (
             qty > stok
@@ -891,7 +800,6 @@ function confirmTransaction() {
         }
 
     }
-
 
     const transaction = {
 
@@ -918,17 +826,13 @@ function confirmTransaction() {
 
     };
 
-
     transactions.push(
         transaction
     );
 
-
     saveTransactions();
 
-
     closeModal();
-
 
     updateTable();
 
@@ -965,12 +869,10 @@ function updateHistoryFilters() {
             "historyDateFilter"
         );
 
-
     const productSelect =
         document.getElementById(
             "historyProductFilter"
         );
-
 
     if (
         !dateSelect ||
@@ -981,18 +883,11 @@ function updateHistoryFilters() {
 
     }
 
-
     const oldDate =
         dateSelect.value;
 
-
     const oldProduct =
         productSelect.value;
-
-
-    /* =========================
-       TANGGAL
-    ========================== */
 
     dateSelect.innerHTML =
         `
@@ -1000,7 +895,6 @@ function updateHistoryFilters() {
             Semua tanggal
         </option>
         `;
-
 
     const dates =
         [
@@ -1015,7 +909,6 @@ function updateHistoryFilters() {
             )
         ];
 
-
     dates.sort(
         function(a, b) {
 
@@ -1027,7 +920,6 @@ function updateHistoryFilters() {
         }
     );
 
-
     dates.forEach(
         function(tanggal) {
 
@@ -1036,15 +928,12 @@ function updateHistoryFilters() {
                     "option"
                 );
 
-
             option.value =
                 tanggal;
-
 
             option.textContent =
                 "Tanggal " +
                 tanggal;
-
 
             dateSelect.appendChild(
                 option
@@ -1053,18 +942,12 @@ function updateHistoryFilters() {
         }
     );
 
-
-    /* =========================
-       BARANG
-    ========================== */
-
     productSelect.innerHTML =
         `
         <option value="">
             Semua barang
         </option>
         `;
-
 
     const products =
         [
@@ -1079,9 +962,7 @@ function updateHistoryFilters() {
             )
         ];
 
-
     products.sort();
-
 
     products.forEach(
         function(product) {
@@ -1091,14 +972,11 @@ function updateHistoryFilters() {
                     "option"
                 );
 
-
             option.value =
                 product;
 
-
             option.textContent =
                 product;
-
 
             productSelect.appendChild(
                 option
@@ -1106,9 +984,6 @@ function updateHistoryFilters() {
 
         }
     );
-
-
-    /* Kembalikan pilihan */
 
     if (
         dates.includes(
@@ -1120,7 +995,6 @@ function updateHistoryFilters() {
             oldDate;
 
     }
-
 
     if (
         products.includes(
@@ -1147,29 +1021,26 @@ function renderHistory() {
             "historyTable"
         );
 
+    if (!tbody) return;
 
     const dateFilter =
         document.getElementById(
             "historyDateFilter"
         ).value;
 
-
     const productFilter =
         document.getElementById(
             "historyProductFilter"
         ).value;
-
 
     const typeFilter =
         document.getElementById(
             "historyTypeFilter"
         ).value;
 
-
     const filtered =
         transactions.filter(
             function(transaction) {
-
 
                 if (
                     dateFilter !== "" &&
@@ -1181,7 +1052,6 @@ function renderHistory() {
 
                 }
 
-
                 if (
                     productFilter !== "" &&
                     transaction.barang !==
@@ -1192,6 +1062,406 @@ function renderHistory() {
 
                 }
 
-
                 if (
-             
+                    typeFilter !== "" &&
+                    transaction.type !==
+                    typeFilter
+                ) {
+
+                    return false;
+
+                }
+
+                return true;
+
+            }
+        );
+
+    const history =
+        [...filtered].reverse();
+
+    document.getElementById(
+        "historySummary"
+    ).textContent =
+        "Menampilkan " +
+        formatNumber(
+            history.length
+        ) +
+        " transaksi";
+
+    if (
+        history.length === 0
+    ) {
+
+        tbody.innerHTML =
+            `
+            <tr>
+                <td
+                    colspan="6"
+                    class="empty"
+                >
+                    Tidak ada transaksi
+                    yang sesuai filter.
+                </td>
+            </tr>
+            `;
+
+        return;
+
+    }
+
+    tbody.innerHTML = "";
+
+    history.forEach(
+        function(transaction) {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            const typeText =
+                transaction.type ===
+                "masuk"
+
+                    ? "➕ Barang Masuk"
+
+                    : "🛒 Barang Laku";
+
+            const qtyText =
+                transaction.type ===
+                "masuk"
+
+                    ? "+" +
+                      formatNumber(
+                          transaction.qty
+                      )
+
+                    : "-" +
+                      formatNumber(
+                          transaction.qty
+                      );
+
+            /*
+             * Hitung stok berdasarkan
+             * posisi transaksi tersebut.
+             *
+             * Jadi riwayat tidak selalu
+             * menampilkan stok saat ini.
+             */
+
+            const barang =
+                dataExcel.find(
+                    function(item) {
+
+                        return (
+                            item.nama ===
+                            transaction.barang
+                        );
+
+                    }
+                );
+
+            let stokAkhir = "-";
+
+            if (barang) {
+
+                let stok =
+                    Number(
+                        barang.stok[
+                            transaction.tanggal
+                        ] || 0
+                    );
+
+                transactions.forEach(
+                    function(t) {
+
+                        if (
+                            t.barang !==
+                            transaction.barang
+                        ) {
+
+                            return;
+                        }
+
+                        if (
+                            t.tanggal !==
+                            transaction.tanggal
+                        ) {
+
+                            return;
+                        }
+
+                        if (
+                            t.id >
+                            transaction.id
+                        ) {
+
+                            return;
+                        }
+
+                        if (
+                            t.type ===
+                            "masuk"
+                        ) {
+
+                            stok +=
+                                t.qty;
+
+                        }
+
+                        if (
+                            t.type ===
+                            "laku"
+                        ) {
+
+                            stok -=
+                                t.qty;
+
+                        }
+
+                    }
+                );
+
+                stokAkhir =
+                    formatNumber(
+                        stok
+                    );
+
+            }
+
+            tr.innerHTML =
+                `
+                <td>
+                    ${escapeHTML(
+                        transaction.waktu
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        transaction.barang
+                    )}
+                </td>
+
+                <td>
+                    ${typeText}
+                </td>
+
+                <td>
+                    ${qtyText}
+                </td>
+
+                <td>
+                    ${stokAkhir}
+                </td>
+
+                <td>
+
+                    <button
+                        class="delete-btn"
+                        onclick="deleteTransaction(
+                            ${transaction.id}
+                        )"
+                    >
+                        Hapus
+                    </button>
+
+                </td>
+                `;
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   EVENT FILTER RIWAYAT
+===================================================== */
+
+document
+.getElementById(
+    "historyDateFilter"
+)
+.addEventListener(
+    "change",
+    renderHistory
+);
+
+document
+.getElementById(
+    "historyProductFilter"
+)
+.addEventListener(
+    "change",
+    renderHistory
+);
+
+document
+.getElementById(
+    "historyTypeFilter"
+)
+.addEventListener(
+    "change",
+    renderHistory
+);
+
+
+/* =====================================================
+   HAPUS TRANSAKSI
+===================================================== */
+
+function deleteTransaction(id) {
+
+    const confirmDelete =
+        confirm(
+            "Hapus transaksi ini?"
+        );
+
+    if (!confirmDelete) {
+
+        return;
+
+    }
+
+    transactions =
+        transactions.filter(
+            function(transaction) {
+
+                return (
+                    transaction.id !==
+                    id
+                );
+
+            }
+        );
+
+    saveTransactions();
+
+    updateHistoryFilters();
+
+    updateTable();
+
+    renderHistory();
+
+}
+
+
+/* =====================================================
+   FORMAT ANGKA
+===================================================== */
+
+function formatNumber(number) {
+
+    return new Intl.NumberFormat(
+        "id-ID"
+    ).format(number);
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(text) {
+
+    return String(text)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =====================================================
+   ESCAPE JAVASCRIPT
+===================================================== */
+
+function escapeJS(text) {
+
+    return String(text)
+
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+
+        .replace(
+            /'/g,
+            "\\'"
+        )
+
+        .replace(
+            /\n/g,
+            "\\n"
+        )
+
+        .replace(
+            /\r/g,
+            "\\r"
+        );
+
+}
+
+
+/* =====================================================
+   KLIK DI LUAR MODAL
+===================================================== */
+
+window.addEventListener(
+    "click",
+    function(event) {
+
+        const modal =
+            document.getElementById(
+                "transactionModal"
+            );
+
+        if (
+            event.target ===
+            modal
+        ) {
+
+            closeModal();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   LOAD AWAL
+===================================================== */
+
+updateHistoryFilters();
+
+renderHistory();
