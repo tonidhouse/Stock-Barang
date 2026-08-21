@@ -1,461 +1,1678 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta charset="UTF-8">
+<title>Stock Barang</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
-    <title>Stock Barang</title>
+<style>
+* {
+    box-sizing: border-box;
+}
 
-    <!-- CSS -->
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #1f2937;
+}
 
-    <!-- Library Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+.header {
+    background: #111827;
+    color: white;
+    padding: 20px;
+}
 
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.header p {
+    margin: 5px 0 0;
+    color: #d1d5db;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 15px;
+}
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 19px;
+}
+
+.import-box {
+    border: 2px dashed #9ca3af;
+    border-radius: 12px;
+    padding: 22px;
+    text-align: center;
+}
+
+.import-box input {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.status {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.success {
+    color: #15803d;
+}
+
+.error {
+    color: #b91c1c;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 12px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.stat {
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.stat small {
+    color: #6b7280;
+}
+
+.stat strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 23px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+th,
+td {
+    padding: 11px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+th {
+    background: #f3f4f6;
+}
+
+td:last-child,
+th:last-child {
+    text-align: center;
+}
+
+.stock-habis {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.stock-menipis {
+    color: #d97706;
+    font-weight: bold;
+}
+
+.stock-aman {
+    color: #15803d;
+    font-weight: bold;
+}
+
+.action-btn {
+    border: none;
+    border-radius: 7px;
+    padding: 7px 10px;
+    margin: 2px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-masuk {
+    background: #15803d;
+}
+
+.btn-laku {
+    background: #dc2626;
+}
+
+.action-btn:active {
+    transform: scale(.96);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.modal-product {
+    color: #6b7280;
+    margin-bottom: 18px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-confirm {
+    background: #111827;
+    color: white;
+}
+
+.btn-cancel {
+    background: #e5e7eb;
+}
+
+.history-table {
+    min-width: 700px;
+}
+
+.delete-btn {
+    border: none;
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.empty {
+    text-align: center;
+    color: #6b7280;
+    padding: 30px;
+}
+
+@media(max-width:600px) {
+
+    .container {
+        padding: 10px;
+    }
+
+    .controls {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 21px;
+    }
+}
+</style>
 </head>
-
 
 <body>
 
 <header class="header">
-
     <h1>📦 Stock Barang</h1>
-
-    <p>
-        Rekap Stok & Transaksi
-    </p>
-
+    <p>Rekap Stok & Transaksi</p>
 </header>
-
 
 <main class="container">
 
+<!-- IMPORT EXCEL -->
+<section class="card">
 
-    <!-- =========================
-         IMPORT EXCEL
-    ========================== -->
+<h2>📥 Import Data Excel</h2>
 
-    <section class="card">
+<div class="import-box">
 
-        <h2>
-            📥 Import Data Excel
-        </h2>
+<div>
+Pilih file stok Excel
+</div>
 
-        <div class="import-box">
+<input
+    type="file"
+    id="excelFile"
+    accept=".xlsx,.xls"
+>
 
-            <div>
-                Pilih file stok Excel
-            </div>
+<div
+    id="fileStatus"
+    class="status"
+>
+Belum ada file
+</div>
 
-            <input
-                type="file"
-                id="excelFile"
-                accept=".xlsx,.xls"
-            >
+</div>
 
-            <div
-                id="fileStatus"
-                class="status"
-            >
-                Belum ada file
-            </div>
+</section>
 
-        </div>
 
-    </section>
+<!-- FILTER -->
+<section class="card">
 
+<h2>🔎 Rekap Stok</h2>
 
-    <!-- =========================
-         FILTER STOK
-    ========================== -->
+<div class="controls">
 
-    <section class="card">
+<div>
 
-        <h2>
-            🔎 Rekap Stok
-        </h2>
+<label>Tanggal</label>
 
-        <div class="controls">
+<select id="tanggal">
 
+<option value="">
+-- Pilih tanggal --
+</option>
 
-            <div>
+</select>
 
-                <label for="tanggal">
-                    Tanggal
-                </label>
+</div>
 
-                <select id="tanggal">
+<div>
 
-                    <option value="">
-                        -- Pilih tanggal --
-                    </option>
+<label>Cari Barang</label>
 
-                </select>
+<input
+    type="text"
+    id="search"
+    placeholder="Ketik nama barang..."
+>
 
-            </div>
+</div>
 
+</div>
 
-            <div>
+</section>
 
-                <label for="search">
-                    Cari Barang
-                </label>
 
-                <input
-                    type="text"
-                    id="search"
-                    placeholder="Ketik nama barang..."
-                >
+<!-- STATISTIK -->
+<section class="card">
 
-            </div>
+<div class="stats">
 
+<div class="stat">
 
-        </div>
+<small>Total Barang</small>
 
-    </section>
+<strong id="totalBarang">
+0
+</strong>
 
+</div>
 
-    <!-- =========================
-         STATISTIK
-    ========================== -->
+<div class="stat">
 
-    <section class="card">
+<small>Total Stok</small>
 
-        <div class="stats">
+<strong id="totalStok">
+0
+</strong>
 
+</div>
 
-            <div class="stat">
+<div class="stat">
 
-                <small>
-                    Total Barang
-                </small>
+<small>Transaksi Hari Ini</small>
 
-                <strong id="totalBarang">
-                    0
-                </strong>
+<strong id="transaksiHariIni">
+0
+</strong>
 
-            </div>
+</div>
 
+</div>
 
-            <div class="stat">
+</section>
 
-                <small>
-                    Total Stok
-                </small>
 
-                <strong id="totalStok">
-                    0
-                </strong>
+<!-- TABEL STOK -->
+<section class="card">
 
-            </div>
+<h2>📦 Daftar Stok</h2>
 
+<div class="table-wrapper">
 
-            <div class="stat">
+<table>
 
-                <small>
-                    Transaksi Hari Ini
-                </small>
+<thead>
 
-                <strong id="transaksiHariIni">
-                    0
-                </strong>
+<tr>
 
-            </div>
+<th>No</th>
 
+<th>Nama Barang</th>
 
-        </div>
+<th>Stok</th>
 
-    </section>
+<th>Aksi</th>
 
+</tr>
 
-    <!-- =========================
-         DAFTAR STOK
-    ========================== -->
+</thead>
 
-    <section class="card">
+<tbody id="stockTable">
 
-        <h2>
-            📦 Daftar Stok
-        </h2>
+<tr>
 
-        <div class="table-wrapper">
+<td colspan="4" class="empty">
 
-            <table>
+Import Excel terlebih dahulu
 
-                <thead>
+</td>
 
-                    <tr>
+</tr>
 
-                        <th>No</th>
+</tbody>
 
-                        <th>
-                            Nama Barang
-                        </th>
+</table>
 
-                        <th>
-                            Stok
-                        </th>
+</div>
 
-                        <th>
-                            Aksi
-                        </th>
+</section>
 
-                    </tr>
 
-                </thead>
+<!-- RIWAYAT -->
+<section class="card">
 
+<h2>📜 Riwayat Transaksi</h2>
 
-                <tbody id="stockTable">
+<div class="table-wrapper">
 
-                    <tr>
+<table class="history-table">
 
-                        <td
-                            colspan="4"
-                            class="empty"
-                        >
-                            Import Excel terlebih dahulu
-                        </td>
+<thead>
 
-                    </tr>
+<tr>
 
-                </tbody>
+<th>Waktu</th>
 
-            </table>
+<th>Barang</th>
 
-        </div>
+<th>Transaksi</th>
 
-    </section>
+<th>Qty</th>
 
+<th>Stok</th>
 
-    <!-- =========================
-         RIWAYAT TRANSAKSI
-    ========================== -->
+<th>Aksi</th>
 
-    <section class="card">
+</tr>
 
-        <h2>
-            📜 Riwayat Transaksi
-        </h2>
+</thead>
 
+<tbody id="historyTable">
 
-        <!-- FILTER RIWAYAT -->
+<tr>
 
-        <div class="history-filters">
+<td colspan="6" class="empty">
 
+Belum ada transaksi
 
-            <div>
+</td>
 
-                <label for="historyDateFilter">
-                    Tanggal
-                </label>
+</tr>
 
-                <select
-                    id="historyDateFilter"
-                >
+</tbody>
 
-                    <option value="">
-                        Semua tanggal
-                    </option>
+</table>
 
-                </select>
+</div>
 
-            </div>
-
-
-            <div>
-
-                <label for="historyProductFilter">
-                    Barang
-                </label>
-
-                <select
-                    id="historyProductFilter"
-                >
-
-                    <option value="">
-                        Semua barang
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div>
-
-                <label for="historyTypeFilter">
-                    Jenis Transaksi
-                </label>
-
-                <select
-                    id="historyTypeFilter"
-                >
-
-                    <option value="">
-                        Semua transaksi
-                    </option>
-
-                    <option value="masuk">
-                        ➕ Barang Masuk
-                    </option>
-
-                    <option value="laku">
-                        🛒 Barang Laku
-                    </option>
-
-                </select>
-
-            </div>
-
-
-        </div>
-
-
-        <div
-            id="historySummary"
-            class="history-summary"
-        >
-            Menampilkan 0 transaksi
-        </div>
-
-
-        <div class="table-wrapper">
-
-            <table class="history-table">
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Waktu
-                        </th>
-
-                        <th>
-                            Barang
-                        </th>
-
-                        <th>
-                            Transaksi
-                        </th>
-
-                        <th>
-                            Qty
-                        </th>
-
-                        <th>
-                            Stok
-                        </th>
-
-                        <th>
-                            Aksi
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody id="historyTable">
-
-                    <tr>
-
-                        <td
-                            colspan="6"
-                            class="empty"
-                        >
-                            Belum ada transaksi
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </section>
-
+</section>
 
 </main>
 
 
-<!-- =========================
-     MODAL TRANSAKSI
-========================== -->
+<!-- MODAL TRANSAKSI -->
 
 <div
     class="modal"
     id="transactionModal"
 >
 
-    <div class="modal-content">
+<div class="modal-content">
 
+<div
+    class="modal-title"
+    id="modalTitle"
+>
+</div>
 
-        <div
-            class="modal-title"
-            id="modalTitle"
-        >
-        </div>
+<div
+    class="modal-product"
+    id="modalProduct"
+>
+</div>
 
+<label>Jumlah</label>
 
-        <div
-            class="modal-product"
-            id="modalProduct"
-        >
-        </div>
+<input
+    type="number"
+    id="transactionQty"
+    min="1"
+    value="1"
+>
 
+<div class="modal-actions">
 
-        <label for="transactionQty">
-            Jumlah
-        </label>
+<button
+    class="btn-cancel"
+    onclick="closeModal()"
+>
+Batal
+</button>
 
-        <input
-            type="number"
-            id="transactionQty"
-            min="1"
-            value="1"
-        >
+<button
+    class="btn-confirm"
+    onclick="confirmTransaction()"
+>
+Simpan
+</button>
 
+</div>
 
-        <div class="modal-actions">
-
-            <button
-                class="btn-cancel"
-                onclick="closeModal()"
-            >
-                Batal
-            </button>
-
-
-            <button
-                class="btn-confirm"
-                onclick="confirmTransaction()"
-            >
-                Simpan
-            </button>
-
-        </div>
-
-
-    </div>
+</div>
 
 </div>
 
 
-<!-- JavaScript -->
-<script src="app.js"></script>
+<script>
+
+let dataExcel = [];
+
+let tanggalDipilih = "";
+
+let transactions =
+    JSON.parse(
+        localStorage.getItem(
+            "stock_transactions"
+        ) || "[]"
+    );
+
+let selectedProduct = null;
+
+let selectedTransactionType = "";
+
+
+/* =========================================
+   IMPORT EXCEL
+========================================= */
+
+document
+.getElementById("excelFile")
+.addEventListener(
+    "change",
+    async function(event) {
+
+        const file =
+            event.target.files[0];
+
+        if (!file) return;
+
+        const status =
+            document.getElementById(
+                "fileStatus"
+            );
+
+        status.textContent =
+            "⏳ Membaca " +
+            file.name +
+            "...";
+
+        try {
+
+            const buffer =
+                await file.arrayBuffer();
+
+            const workbook =
+                XLSX.read(
+                    buffer,
+                    {
+                        type: "array"
+                    }
+                );
+
+            const sheetName =
+                workbook.SheetNames[0];
+
+            const worksheet =
+                workbook.Sheets[
+                    sheetName
+                ];
+
+            const rows =
+                XLSX.utils.sheet_to_json(
+                    worksheet,
+                    {
+                        header: 1,
+                        defval: null,
+                        raw: true
+                    }
+                );
+
+            if (
+                !rows ||
+                rows.length < 2
+            ) {
+
+                throw new Error(
+                    "Data Excel tidak ditemukan."
+                );
+
+            }
+
+            const header =
+                rows[0];
+
+            const kolomTanggal = {};
+
+            /*
+             * Cari kolom tanggal 1-31
+             */
+
+            for (
+                let c = 0;
+                c < header.length;
+                c++
+            ) {
+
+                const value =
+                    header[c];
+
+                if (
+                    value === null ||
+                    value === undefined
+                ) continue;
+
+                const text =
+                    String(value).trim();
+
+                const num =
+                    Number(text);
+
+                if (
+                    Number.isInteger(num) &&
+                    num >= 1 &&
+                    num <= 31
+                ) {
+
+                    kolomTanggal[
+                        String(num)
+                    ] = c;
+
+                }
+
+            }
+
+            const jumlahTanggal =
+                Object.keys(
+                    kolomTanggal
+                ).length;
+
+            if (
+                jumlahTanggal === 0
+            ) {
+
+                throw new Error(
+                    "Kolom tanggal 1-31 tidak ditemukan."
+                );
+
+            }
+
+            dataExcel = [];
+
+            /*
+             * Baca barang
+             */
+
+            for (
+                let r = 1;
+                r < rows.length;
+                r++
+            ) {
+
+                const row = rows[r];
+
+                const nama =
+                    row[0];
+
+                if (
+                    nama === null ||
+                    nama === undefined ||
+                    String(nama).trim() === ""
+                ) continue;
+
+                const barang = {
+
+                    nama:
+                        String(nama).trim(),
+
+                    stok: {}
+
+                };
+
+                for (
+                    let tanggal = 1;
+                    tanggal <= 31;
+                    tanggal++
+                ) {
+
+                    const col =
+                        kolomTanggal[
+                            String(tanggal)
+                        ];
+
+                    if (
+                        col === undefined
+                    ) continue;
+
+                    let value =
+                        row[col];
+
+                    if (
+                        value === null ||
+                        value === undefined ||
+                        value === ""
+                    ) {
+
+                        value = 0;
+
+                    }
+
+                    if (
+                        typeof value === "string"
+                    ) {
+
+                        value =
+                            value
+                            .replace(/,/g, "")
+                            .trim();
+
+                    }
+
+                    const stok =
+                        Number(value);
+
+                    barang.stok[
+                        String(tanggal)
+                    ] =
+                        Number.isFinite(stok)
+                            ? stok
+                            : 0;
+
+                }
+
+                dataExcel.push(
+                    barang
+                );
+
+            }
+
+            /*
+             * Isi dropdown tanggal
+             */
+
+            const select =
+                document.getElementById(
+                    "tanggal"
+                );
+
+            select.innerHTML =
+                `<option value="">
+                -- Pilih tanggal --
+                </option>`;
+
+            for (
+                let tanggal = 1;
+                tanggal <= 31;
+                tanggal++
+            ) {
+
+                if (
+                    kolomTanggal[
+                        String(tanggal)
+                    ] !== undefined
+                ) {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+                    option.value =
+                        String(tanggal);
+
+                    option.textContent =
+                        "Tanggal " +
+                        tanggal;
+
+                    select.appendChild(
+                        option
+                    );
+
+                }
+
+            }
+
+            /*
+             * Pilih tanggal 1 otomatis
+             */
+
+            if (
+                jumlahTanggal > 0
+            ) {
+
+                tanggalDipilih = "1";
+
+                select.value = "1";
+
+            }
+
+            status.className =
+                "status success";
+
+            status.textContent =
+                "✅ Berhasil membaca " +
+                dataExcel.length +
+                " barang.";
+
+            updateTable();
+
+        }
+
+        catch(error) {
+
+            console.error(error);
+
+            status.className =
+                "status error";
+
+            status.textContent =
+                "❌ " +
+                error.message;
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   PILIH TANGGAL
+========================================= */
+
+document
+.getElementById("tanggal")
+.addEventListener(
+    "change",
+    function() {
+
+        tanggalDipilih =
+            this.value;
+
+        updateTable();
+
+    }
+);
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+document
+.getElementById("search")
+.addEventListener(
+    "input",
+    updateTable
+);
+
+
+/* =========================================
+   HITUNG STOK
+========================================= */
+
+function getBaseStock(barang) {
+
+    if (
+        !tanggalDipilih
+    ) return 0;
+
+    return Number(
+        barang.stok[
+            tanggalDipilih
+        ] || 0
+    );
+
+}
+
+
+/*
+ * Stok aktual =
+ *
+ * stok Excel
+ * + barang masuk
+ * - barang laku
+ */
+
+function getCurrentStock(
+    barang
+) {
+
+    let stok =
+        getBaseStock(
+            barang
+        );
+
+    transactions.forEach(
+        function(transaction) {
+
+            if (
+                transaction.barang !==
+                barang.nama
+            ) return;
+
+            if (
+                transaction.tanggal !==
+                tanggalDipilih
+            ) return;
+
+            if (
+                transaction.type ===
+                "masuk"
+            ) {
+
+                stok +=
+                    transaction.qty;
+
+            }
+
+            if (
+                transaction.type ===
+                "laku"
+            ) {
+
+                stok -=
+                    transaction.qty;
+
+            }
+
+        }
+    );
+
+    return stok;
+
+}
+
+
+/* =========================================
+   UPDATE TABLE
+========================================= */
+
+function updateTable() {
+
+    const tbody =
+        document.getElementById(
+            "stockTable"
+        );
+
+    const search =
+        document.getElementById(
+            "search"
+        )
+        .value
+        .toLowerCase()
+        .trim();
+
+    if (
+        dataExcel.length === 0
+    ) {
+
+        tbody.innerHTML =
+            `<tr>
+            <td colspan="4"
+                class="empty">
+                Import Excel terlebih dahulu
+            </td>
+            </tr>`;
+
+        updateStats();
+
+        return;
+
+    }
+
+    const filtered =
+        dataExcel.filter(
+            function(barang) {
+
+                return barang.nama
+                    .toLowerCase()
+                    .includes(search);
+
+            }
+        );
+
+    tbody.innerHTML = "";
+
+    filtered.forEach(
+        function(barang, index) {
+
+            const stok =
+                getCurrentStock(
+                    barang
+                );
+
+            let statusClass =
+                "stock-aman";
+
+            if (
+                stok <= 0
+            ) {
+
+                statusClass =
+                    "stock-habis";
+
+            }
+
+            else if (
+                stok <= 5
+            ) {
+
+                statusClass =
+                    "stock-menipis";
+
+            }
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            tr.innerHTML =
+                `
+                <td>
+                    ${index + 1}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        barang.nama
+                    )}
+                </td>
+
+                <td class="${statusClass}">
+                    ${formatNumber(stok)}
+                </td>
+
+                <td>
+
+                    <button
+                        class="action-btn btn-masuk"
+                        onclick="openTransaction(
+                            '${escapeJS(
+                                barang.nama
+                            )}',
+                            'masuk'
+                        )"
+                    >
+                        ➕ Masuk
+                    </button>
+
+                    <button
+                        class="action-btn btn-laku"
+                        onclick="openTransaction(
+                            '${escapeJS(
+                                barang.nama
+                            )}',
+                            'laku'
+                        )"
+                    >
+                        🛒 Laku
+                    </button>
+
+                </td>
+                `;
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+    );
+
+    updateStats();
+
+}
+
+
+/* =========================================
+   STATISTIK
+========================================= */
+
+function updateStats() {
+
+    let total = 0;
+
+    dataExcel.forEach(
+        function(barang) {
+
+            total +=
+                getCurrentStock(
+                    barang
+                );
+
+        }
+    );
+
+    const transaksiHariIni =
+        transactions.filter(
+            function(t) {
+
+                return (
+                    t.tanggal ===
+                    tanggalDipilih
+                );
+
+            }
+        ).length;
+
+    document.getElementById(
+        "totalBarang"
+    ).textContent =
+        formatNumber(
+            dataExcel.length
+        );
+
+    document.getElementById(
+        "totalStok"
+    ).textContent =
+        formatNumber(
+            total
+        );
+
+    document.getElementById(
+        "transaksiHariIni"
+    ).textContent =
+        formatNumber(
+            transaksiHariIni
+        );
+
+    renderHistory();
+
+}
+
+
+/* =========================================
+   BUKA MODAL
+========================================= */
+
+function openTransaction(
+    nama,
+    type
+) {
+
+    selectedProduct =
+        nama;
+
+    selectedTransactionType =
+        type;
+
+    const modal =
+        document.getElementById(
+            "transactionModal"
+        );
+
+    const title =
+        document.getElementById(
+            "modalTitle"
+        );
+
+    const product =
+        document.getElementById(
+            "modalProduct"
+        );
+
+    if (
+        type === "masuk"
+    ) {
+
+        title.textContent =
+            "➕ Barang Masuk";
+
+    }
+
+    else {
+
+        title.textContent =
+            "🛒 Barang Laku";
+
+    }
+
+    product.textContent =
+        nama;
+
+    document.getElementById(
+        "transactionQty"
+    ).value = 1;
+
+    modal.style.display =
+        "flex";
+
+}
+
+
+/* =========================================
+   TUTUP MODAL
+========================================= */
+
+function closeModal() {
+
+    document.getElementById(
+        "transactionModal"
+    ).style.display =
+        "none";
+
+}
+
+
+/* =========================================
+   SIMPAN TRANSAKSI
+========================================= */
+
+function confirmTransaction() {
+
+    const input =
+        document.getElementById(
+            "transactionQty"
+        );
+
+    const qty =
+        Number(
+            input.value
+        );
+
+    if (
+        !Number.isFinite(qty) ||
+        qty <= 0
+    ) {
+
+        alert(
+            "Jumlah harus lebih dari 0."
+        );
+
+        return;
+
+    }
+
+    /*
+     * Untuk barang laku,
+     * jangan boleh melebihi stok.
+     */
+
+    if (
+        selectedTransactionType ===
+        "laku"
+    ) {
+
+        const barang =
+            dataExcel.find(
+                function(item) {
+
+                    return (
+                        item.nama ===
+                        selectedProduct
+                    );
+
+                }
+            );
+
+        if (!barang) {
+
+            alert(
+                "Barang tidak ditemukan."
+            );
+
+            return;
+
+        }
+
+        const stok =
+            getCurrentStock(
+                barang
+            );
+
+        if (
+            qty > stok
+        ) {
+
+            alert(
+                "Jumlah barang laku " +
+                "melebihi stok saat ini.\n\n" +
+                "Stok tersedia: " +
+                stok
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    const transaction = {
+
+        id:
+            Date.now(),
+
+        waktu:
+            new Date()
+            .toLocaleString(
+                "id-ID"
+            ),
+
+        tanggal:
+            tanggalDipilih,
+
+        barang:
+            selectedProduct,
+
+        type:
+            selectedTransactionType,
+
+        qty:
+            qty
+
+    };
+
+
+    transactions.push(
+        transaction
+    );
+
+
+    localStorage.setItem(
+        "stock_transactions",
+        JSON.stringify(
+            transactions
+        )
+    );
+
+
+    closeModal();
+
+    updateTable();
+
+}
+
+
+/* =========================================
+   RIWAYAT TRANSAKSI
+========================================= */
+
+function renderHistory() {
+
+    const tbody =
+        document.getElementById(
+            "historyTable"
+        );
+
+    /*
+     * Tampilkan transaksi terbaru
+     * di paling atas.
+     */
+
+    const history =
+        [...transactions]
+        .reverse();
+
+    if (
+        history.length === 0
+    ) {
+
+        tbody.innerHTML =
+            `
+            <tr>
+                <td colspan="6"
+                    class="empty">
+                    Belum ada transaksi
+                </td>
+            </tr>
+            `;
+
+        return;
+
+    }
+
+    tbody.innerHTML = "";
+
+    history.forEach(
+        function(transaction) {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            const typeText =
+                transaction.type ===
+                "masuk"
+                    ? "➕ Barang Masuk"
+                    : "🛒 Barang Laku";
+
+            const qtyText =
+                transaction.type ===
+                "masuk"
+                    ? "+" +
+                      formatNumber(
+                          transaction.qty
+                      )
+                    : "-" +
+                      formatNumber(
+                          transaction.qty
+                      );
+
+            const barang =
+                dataExcel.find(
+                    function(item) {
+
+                        return (
+                            item.nama ===
+                            transaction.barang
+                        );
+
+                    }
+                );
+
+            let stokAkhir = "-";
+
+            if (
+                barang &&
+                transaction.tanggal ===
+                tanggalDipilih
+            ) {
+
+                stokAkhir =
+                    formatNumber(
+                        getCurrentStock(
+                            barang
+                        )
+                    );
+
+            }
+
+            tr.innerHTML =
+                `
+                <td>
+                    ${escapeHTML(
+                        transaction.waktu
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        transaction.barang
+                    )}
+                </td>
+
+                <td>
+                    ${typeText}
+                </td>
+
+                <td>
+                    ${qtyText}
+                </td>
+
+                <td>
+                    ${stokAkhir}
+                </td>
+
+                <td>
+
+                    <button
+                        class="delete-btn"
+                        onclick="deleteTransaction(
+                            ${transaction.id}
+                        )"
+                    >
+                        Hapus
+                    </button>
+
+                </td>
+                `;
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   HAPUS TRANSAKSI
+========================================= */
+
+function deleteTransaction(id) {
+
+    const confirmDelete =
+        confirm(
+            "Hapus transaksi ini?"
+        );
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    transactions =
+        transactions.filter(
+            function(transaction) {
+
+                return (
+                    transaction.id !==
+                    id
+                );
+
+            }
+        );
+
+    localStorage.setItem(
+        "stock_transactions",
+        JSON.stringify(
+            transactions
+        )
+    );
+
+    updateTable();
+
+}
+
+
+/* =========================================
+   FORMAT ANGKA
+========================================= */
+
+function formatNumber(
+    number
+) {
+
+    return new Intl.NumberFormat(
+        "id-ID"
+    ).format(number);
+
+}
+
+
+/* =========================================
+   ESCAPE HTML
+========================================= */
+
+function escapeHTML(text) {
+
+    return String(text)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================
+   ESCAPE JAVASCRIPT
+========================================= */
+
+function escapeJS(text) {
+
+    return String(text)
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
+        )
+        .replace(
+            /\n/g,
+            "\\n"
+        )
+        .replace(
+            /\r/g,
+            "\\r"
+        );
+
+}
+
+
+/* =========================================
+   TUTUP MODAL KLIK LUAR
+========================================= */
+
+window.addEventListener(
+    "click",
+    function(event) {
+
+        const modal =
+            document.getElementById(
+                "transactionModal"
+            );
+
+        if (
+            event.target === modal
+        ) {
+
+            closeModal();
+
+        }
+
+    }
+);
+
+
+/* =========================================
+   LOAD AWAL
+========================================= */
+
+renderHistory();
+
+</script>
 
 </body>
-
 </html>
