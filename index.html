@@ -263,14 +263,6 @@ th:last-child {
     min-width: 750px;
 }
 
-.delete-btn {
-    border: none;
-    background: #fee2e2;
-    color: #b91c1c;
-    padding: 6px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-}
 
 .empty {
     text-align: center;
@@ -490,9 +482,6 @@ th:last-child {
 <th>Nama Barang</th>
 
 <th>Stok</th>
-
-<th>Aksi</th>
-
 </tr>
 
 </thead>
@@ -558,7 +547,7 @@ th:last-child {
 <tr>
 
 <td
-    colspan="7"
+    colspan="6"
     class="empty"
 >
 Belum ada transaksi
@@ -1595,7 +1584,7 @@ function renderHistory() {
             `
             <tr>
                 <td
-                    colspan="7"
+                    colspan="6"
                     class="empty"
                 >
                     Belum ada transaksi
@@ -1727,20 +1716,7 @@ function renderHistory() {
                         stokAkhir
                     )}
                 </td>
-
-                <td>
-
-                    <button
-                        class="delete-btn"
-                        onclick="deleteTransaction(
-                            ${Number(transaction.id)}
-                        )"
-                    >
-                        Hapus
-                    </button>
-
-                </td>
-                `;
+`;
 
 
             tbody.appendChild(
@@ -1858,57 +1834,6 @@ function getStockAfterTransaction(
 
 }
 
-
-/* =========================================
-   HAPUS TRANSAKSI
-========================================= */
-
-async function deleteTransaction(
-    id
-) {
-
-    const confirmDelete =
-        confirm(
-            "Hapus transaksi ini?"
-        );
-
-
-    if (!confirmDelete) {
-
-        return;
-
-    }
-
-
-    const {
-        error
-    } =
-        await supabaseClient
-            .from("transaksi")
-            .delete()
-            .eq(
-                "id",
-                id
-            );
-
-
-    if (error) {
-
-        console.error(error);
-
-        alert(
-            "Gagal menghapus transaksi:\n" +
-            error.message
-        );
-
-        return;
-
-    }
-
-
-    await loadTransactions();
-
-}
 
 
 /* =========================================
